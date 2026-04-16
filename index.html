@@ -1727,5 +1727,46 @@ history.replaceState({view:'home'},'','#home');
 loadRow('trendingRow','telugu hindi tamil blockbuster songs 2024 official audio','indian hit songs 2024');
 loadRow('newRow','bollywood tollywood new songs 2024 official audio','new indian songs 2024');
 </script>
+  <audio id="bgAudio" preload="auto"></audio>
+  <script>
+const audio = document.getElementById("bgAudio");
+
+// Play track function (connect this to your existing player)
+function playTrack(src, title = "Unknown", artist = "Unknown", cover = "") {
+  audio.src = src;
+  audio.play();
+
+  // Media Session (lock screen controls)
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: title,
+      artist: artist,
+      artwork: cover ? [{ src: cover, sizes: "512x512", type: "image/png" }] : []
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => audio.play());
+    navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+    navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack && nextTrack());
+    navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack && prevTrack());
+  }
+}
+
+// Enable background playback
+audio.setAttribute("playsinline", "true");
+audio.setAttribute("webkit-playsinline", "true");
+
+// Show your existing banner
+audio.addEventListener("play", () => {
+  const banner = document.getElementById("bgBanner");
+  if (banner) banner.classList.add("show");
+});
+
+// Handle tab switching
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    // keep state (no forced pause)
+  }
+});
+</script>
 </body>
 </html>
