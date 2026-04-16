@@ -850,6 +850,39 @@ body{font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--text);h
 <audio id="audioEl" preload="none" playsinline></audio>
 
 <script>
+  // This handles the lock-screen and background controls
+function registerMS() {
+    if ('mediaSession' in navigator) {
+        // Set up the controls
+        navigator.mediaSession.setActionHandler('play', () => {
+            if (ytPlayer && ytPlayer.playVideo) ytPlayer.playVideo();
+            else togglePlay();
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+            if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
+            else togglePlay();
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
+        navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+            if (ytPlayer && ytPlayer.seekTo) ytPlayer.seekTo(details.seekTime);
+        });
+    }
+}
+
+// Call this every time a new song starts to update the lock-screen info
+function updateMetadata(title, artist, cover) {
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: title || "Unknown Title",
+            artist: artist || "Play For You",
+            album: "Play For You",
+            artwork: [
+                { src: cover || 'https://via.placeholder.com/512', sizes: '512x512', type: 'image/png' }
+            ]
+        });
+    }
+}
 /* ═══════════════════════════════════════════
    CONFIG
 ═══════════════════════════════════════════ */
@@ -1661,8 +1694,9 @@ function syncTrackUI(){
   const t=pool[curIdx];
   const img=src=>src?`<img src="${src}" onerror="this.parentNode.textContent='🎵'">`:'🎵';
   document.getElementById('npThumb').innerHTML=img(t.thumb);
-  document.getElementById('npTitle').textContent=t.title;
-  document.getElementById('npArtist').textContent=t.artist;
+  document.getElementById('npTitle').innerText = track.title;
+  document.getElementById('npArtist').innerText = track.artist;
+  updateMetadata(track.title, track.artist, track.thumb);
   document.getElementById('fsArt').innerHTML=img(t.thumbHq);
   document.getElementById('fsSongTitle').textContent=t.title;
   document.getElementById('fsArtist').textContent=t.artist;
@@ -1704,14 +1738,14 @@ document.querySelectorAll('.modal-overlay').forEach(el=>{el.addEventListener('cl
 document.querySelector('.sub-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAddToPlModal();});
 
 /* Keyboard */
-document.addEventListener('keydown',e=>{
-  if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName))return;
-  if(e.code==='Space'){e.preventDefault();togglePlay();}
-  else if(e.code==='ArrowRight'){e.preventDefault();nextTrack();}
-  else if(e.code==='ArrowLeft'){e.preventDefault();prevTrack();}
-  else if(e.code==='KeyL'){toggleLike();}
-  else if(e.code==='KeyQ'){openQueueDrawer();}
-  else if(e.code==='Escape'){closeQueueDrawer();closeFS();closeCtxMenu();}
+// Add this near the bottom of your script section
+document.addEventListener('visibilitychange', () => {
+    const banner = document.getElementById('bgBanner');
+    if (document.visibilityState === 'hidden' && isPlaying) {
+        banner.classList.add('show');
+    } else {
+        banner.classList.remove('show');
+    }
 });
 
 /* ═══════════════════════════════════════════
