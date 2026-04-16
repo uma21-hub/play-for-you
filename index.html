@@ -11,6 +11,13 @@
 <title>Play For You</title>
 <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
+  if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('Service Worker Registered!', reg))
+      .catch(err => console.log('Registration failed:', err));
+  });
+}
 :root{
   --green:#1ed760;--dark:#0a0a0f;--dark2:#111118;--dark3:#18181f;
   --dark4:#222230;--surface:#1e1e2a;--surface2:#252535;
